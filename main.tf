@@ -68,7 +68,10 @@ resource "aws_lb" "main" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = [for s in aws_subnet.subnets : s.id if s.map_public_ip_on_launch]
+  subnets = distinct([
+  for az, subnet in { for s in aws_subnet.subnets : s.availability_zone => s if s.tags["type"] == "loadbalancer" } :
+  subnet.id
+])
   tags = {
     Name = var.lb_name
   }
